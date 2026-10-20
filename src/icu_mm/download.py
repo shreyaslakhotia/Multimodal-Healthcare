@@ -68,6 +68,11 @@ def fetch(url, destination):
                 raise RuntimeError('Unexpected download resume offset')
         with part.open('ab' if resume else 'wb') as target:
             shutil.copyfileobj(response, target, CHUNK)
+        length = response.headers.get('Content-Length')
+        if length is not None:
+            expected_transport = int(length) + (offset if resume else 0)
+            if part.stat().st_size != expected_transport:
+                raise RuntimeError('Transport ended before the complete response was received')
     part.replace(destination)
 
 
