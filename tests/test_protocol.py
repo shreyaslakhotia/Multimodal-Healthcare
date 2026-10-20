@@ -45,7 +45,8 @@ def test_imputation_does_not_look_forward():
     mask[:, 3, :] = True
     result = normalizer.transform(x, mask)
     np.testing.assert_array_equal(result[:, :3], 0)
-    np.testing.assert_allclose(result[:, 3:], (40 - normalizer.mean_) / normalizer.scale_, rtol=1e-6)
+    expected = np.full_like(result[:, 3:], ((40 - normalizer.mean_) / normalizer.scale_)[0])
+    np.testing.assert_allclose(result[:, 3:], expected, rtol=1e-6)
 
 
 def test_metrics_match_sklearn_and_validation_threshold_is_optimal():
