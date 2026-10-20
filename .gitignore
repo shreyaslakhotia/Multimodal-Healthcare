@@ -21,6 +21,8 @@ kaggle.json
 *token*
 *secret*
 *.key
+*.joblib
+*.pkl
 id_ed25519*
 *.egg-info/
 build/
