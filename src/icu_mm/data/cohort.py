@@ -8,6 +8,7 @@ import io
 import hashlib
 import json
 import os
+import traceback
 from pathlib import Path
 import zipfile
 import duckdb
@@ -210,6 +211,8 @@ if __name__=='__main__':
         main()
     except Exception as error:
         reason = str(error) if isinstance(error, RuntimeError) else type(error).__name__
-        (P/'reports/BLOCKED.md').write_text(f'Cohort build stopped: {reason}. No automatic retries.\n')
-        print('COHORT_STOPPED', reason, flush=True)
+        trace = traceback.extract_tb(error.__traceback__)
+        location = ' > '.join(f'{Path(item.filename).name}:{item.lineno}:{item.name}' for item in trace)
+        (P/'reports/BLOCKED.md').write_text(f'Cohort build stopped: {reason}. Location: {location}. No automatic retries.\n')
+        print('COHORT_STOPPED', reason, 'LOCATION', location, flush=True)
         raise SystemExit(1)

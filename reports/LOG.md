@@ -54,3 +54,7 @@
 - Local cleanup and candidate cohort code committed as dd44d44. Git whitespace checks passed; stale import/script references were removed from current entrypoints and documentation. The new cohort tests have not run.
 - Two SCP attempts to the original cluster alias timed out after the earlier successful status read. No alternate hosts or access workarounds attempted. The bundle is saved locally, but the remote checkout still has its previous organization; no new cohort job submitted.
 - Asked the user whether the laptop remains on NTUSECURE/NTU VPN. Preserve completed datasets and existing Slurm jobs. Resume by rechecking SSH, syncing committed source, then running the expanded suite on CPU before cohort construction.
+
+## Connectivity restored
+
+- User reconnected; SSH verified successfully. The remote checkout was clean at 5b56cc1, and GPU smoke 215030 remained pending. Resume synchronization and CPU validation before candidate cohort construction.
