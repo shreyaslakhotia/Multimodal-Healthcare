@@ -8,9 +8,10 @@ import duckdb
 import pandas as pd
 from .acquisition import NEEDED
 from .inspection import parse_paths
-from ..report_audit import SECTIONS,normalize_report,HEADER
+from ..report_audit import SECTIONS,normalize_report
 
 P=Path('/projects/icumultimodal')
+LINE_HEADER=re.compile(r'(?im)(?:^|\n)\s*('+'|'.join(SECTIONS)+r')\s*:\s*')
 
 
 def main():
@@ -53,7 +54,7 @@ def main():
         counters['text_count_matches_study_count']+=int(len(texts)==len(studies))
         normalized,_=normalize_report(row.text)
         any_names={match.group(1).upper() for match in any_header.finditer(normalized)}
-        line_names={match.group(1).upper() for match in HEADER.finditer(normalized)}
+        line_names={match.group(1).upper() for match in LINE_HEADER.finditer(normalized)}
         for section in SECTIONS:
             anywhere[section]+=int(section in any_names)
             anchored[section]+=int(section in line_names)

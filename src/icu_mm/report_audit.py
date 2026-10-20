@@ -22,7 +22,8 @@ from .aggregate import align_patients
 from .bootstrap import paired_bootstrap
 
 SECTIONS=('EXAMINATION','INDICATION','TECHNIQUE','COMPARISON','FINDINGS','IMPRESSION')
-HEADER=re.compile(r'(?im)(?:^|\n)\s*('+'|'.join(SECTIONS)+r')\s*:\s*')
+AUDIT_VERSION='inline_headers_v2'
+HEADER=re.compile(r'\b('+'|'.join(SECTIONS)+r')\s*:\s*',re.I)
 LEXICON={'death':r'\bdeath\b','deceased':r'\bdeceased\b','expired':r'\bexpired\b',
          'post_mortem':r'\bpost[-\s]?mortem\b','brain_death':r'\bbrain\s+death\b',
          'comfort_care':r'\bcomfort\s+care\b','dnr_dni':r'\b(?:dnr|dni)\b',
@@ -79,7 +80,7 @@ def log_odds(texts,labels):
 
 
 def predictive_audit(texts,frame,parts,section,strip,output):
-    experiment=f'report__{section.lower()}__'+('stripped' if strip else 'original')
+    experiment=f'report_v2__{section.lower()}__'+('stripped' if strip else 'original')
     directory=output/experiment
     directory.mkdir(exist_ok=True)
     texts=np.asarray([FLAGGED.sub(' ',text) if strip else text for text in texts],dtype=object)
@@ -131,8 +132,8 @@ def main():
         raise RuntimeError('Report audit requires a CPU Slurm allocation')
     data=load_data('main')
     frame,parts=data['frame'],data['parts']
-    output=P/'results/report_audit'
-    output.mkdir(exist_ok=True)
+    output=P/'results/report_audit'/AUDIT_VERSION
+    output.mkdir(parents=True,exist_ok=True)
     lock=output/'signature.txt'
     digest=hashlib.sha256(Path(__file__).read_bytes()+(data['directory']/'partitions.npz').read_bytes()).hexdigest()
     if lock.exists() and lock.read_text().strip()!=digest:
@@ -184,8 +185,8 @@ def main():
         terms=pd.concat(term_tables,ignore_index=True)
         terms['q']=false_discovery_control(terms.p.to_numpy(),method='bh')
         terms.to_csv(output/'training_log_odds.csv',index=False)
-        figures=P/'reports/figures/report_audit'
-        figures.mkdir(exist_ok=True)
+        figures=P/'reports/figures/report_audit'/AUDIT_VERSION
+        figures.mkdir(parents=True,exist_ok=True)
         for section in SECTIONS:
             for label,sign in [('deceased',1),('surviving',-1)]:
                 subset=terms.loc[(terms.section==section)&(terms.q<.05)&(terms.log_odds*sign>0)]
@@ -202,7 +203,7 @@ def main():
                 fig.tight_layout(rect=(0,.06,1,1))
                 fig.savefig(figures/f'{section.lower()}_{label}.png',dpi=150,bbox_inches='tight')
                 plt.close(fig)
-    report={'parse_rates':parse_rates,'patients':len(frame),'repeated_section_header_patients':repeated,
+    report={'audit_version':AUDIT_VERSION,'parse_rates':parse_rates,'patients':len(frame),'repeated_section_header_patients':repeated,
             'list_encoded_report_patients':listed,'predictive':predictive,
             'association_population':'fold0 inner training only; min patient document frequency 10',
             'prior':'empirical Bayes pooled training proportions; fixed strength 1000',
