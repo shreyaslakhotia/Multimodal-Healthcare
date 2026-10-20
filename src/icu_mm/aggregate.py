@@ -21,6 +21,13 @@ def main():
     if 'SLURM_JOB_ID' not in os.environ:
         raise RuntimeError('Aggregation requires a CPU Slurm allocation')
     initial=pd.read_csv(P/'results/tabular_initial_summary.csv')
+    cxr_path=P/'results/cxr_tabular_initial_summary.csv'
+    if cxr_path.exists():
+        initial=pd.concat([initial,pd.read_csv(cxr_path)],ignore_index=True)
+    if 'selection' not in initial:
+        initial['selection']='main'
+    else:
+        initial['selection']=initial.selection.fillna('main')
     selected=initial.loc[(initial.cohort=='main') & ~initial.shuffled_training_labels & (initial.arm!='mask')].copy()
     cache=P/'results/bootstrap'
     cache.mkdir(exist_ok=True)
@@ -66,7 +73,36 @@ def main():
                         record[f'{metric}_{key}']=result[metric][key]
                 comparisons.append(record)
     pd.DataFrame(comparisons).to_csv(P/'results/modality_contrasts.csv',index=False)
-    print('INITIAL_EHR_AGGREGATION_COMPLETE',flush=True)
+    if cxr_path.exists():
+        full_contrasts=[('context_vitals_labs_cxr','vitals_labs_cxr','full_context_leave_out'),
+                        ('context_vitals_labs_cxr','context_labs_cxr','full_vitals_leave_out'),
+                        ('context_vitals_labs_cxr','context_vitals_cxr','full_labs_leave_out'),
+                        ('context_vitals_labs_cxr','context_vitals_labs','full_cxr_leave_out')]
+        for learner in ('logistic','lightgbm'):
+            planned=[]
+            for counts in (False,True):
+                planned.extend((first,second,name,counts,'main','main') for first,second,name in full_contrasts)
+            planned.extend([('context_cxr','context','cxr_add_to_context',False,'main','main'),
+                            ('cxr','cxr','alternate_minus_primary',False,'alternate','main')])
+            for first_arm,second_arm,name,counts,first_selection,second_selection in planned:
+                first=selected.loc[(selected.model==learner)&(selected.arm==first_arm)&(selected.include_counts==counts)&(selected.selection==first_selection)].iloc[0]
+                second=selected.loc[(selected.model==learner)&(selected.arm==second_arm)&(selected.include_counts==counts)&(selected.selection==second_selection)].iloc[0]
+                target=cache/f'paired_{learner}_{int(counts)}_{name}.json'
+                if target.exists():
+                    result=json.loads(target.read_text())
+                else:
+                    paired=align_patients(pd.read_parquet(P/f'results/oof/{first.experiment}__seed0.parquet'),
+                                          pd.read_parquet(P/f'results/oof/{second.experiment}__seed0.parquet'))
+                    result=paired_bootstrap(paired.y_true_first,paired.subject_id,paired.y_prob_first,paired.y_prob_second)
+                    target.write_text(json.dumps(result,indent=2))
+                record={'model':learner,'include_counts':counts,'comparison':name,
+                        'first':first.experiment,'second':second.experiment}
+                for metric in ('auroc','auprc'):
+                    for key in ('delta','lower','upper'):
+                        record[f'{metric}_{key}']=result[metric][key]
+                comparisons.append(record)
+        pd.DataFrame(comparisons).to_csv(P/'results/modality_contrasts.csv',index=False)
+    print('TABULAR_AGGREGATION_COMPLETE',flush=True)
 
 
 if __name__=='__main__':
