@@ -31,3 +31,10 @@
 - Job 215024 completed successfully: 22 synthetic tests passed; pip check reported no broken requirements. Torch 2.8.0+cu128, torchvision 0.23.0+cu128, numpy 1.26.4 and sklearn 1.6.1 verified. GPU behavior remains to be checked separately.
 - Measured on CPU allocation: environment 8,268,767,768 bytes; pip cache 1,606,270,765 bytes; conda package cache 940,932,212 bytes. Conservative acquisition plan (all nine IV tables, entire uncompressed CXR size, 8 GB future artifacts/scratch, and 1 GB code/cache-growth reserve) is about 79.8 GB, below the 90 GB SSD stop point.
 - Prepared selective resumable acquisition with fixed paths, transport validation, SHA256 recording and conservative size guards. No recursive scans of dataset or image directories. CXR original ZIP stays on HDD; only CSV metadata initially extracted to SSD.
+
+## 20 October 2026 — jobs queued
+
+- Data acquisition job 215029 accepted: CPU-only, 8 CPUs, 4-hour limit; tests gate downloads. L40 GPU smoke job 215030 accepted: one GPU, 5-minute limit, at most 20 SU. Live L40 mixed-state node had all four GPUs allocated, so no immediate GPU capacity was assumed.
+- Discovery job 215035 accepted with afterok:215029 and kill-on-invalid-dep enabled, CPU-only, 8 CPUs, 30-minute limit. It checks dictionaries and metadata structure and exports aggregate diagnostics only.
+- Latest synchronized code revision is 5b56cc1. All three jobs were pending at last snapshot: acquisition/smoke for Priority, discovery for Dependency. No patient data download or GPU execution had started.
+- Additional acquisition and safe-path parser tests are committed but not yet run; the previous successful suite count remains 22. Do not report new tests as passed until the queued CPU job executes them.
