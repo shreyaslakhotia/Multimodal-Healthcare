@@ -1,5 +1,5 @@
 import pytest
-from icu_mm.discovery import parse_paths
+from icu_mm.data.inspection import parse_paths
 
 
 def test_safe_path_column_shapes():

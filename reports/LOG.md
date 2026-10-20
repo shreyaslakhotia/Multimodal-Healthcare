@@ -38,3 +38,13 @@
 - Discovery job 215035 accepted with afterok:215029 and kill-on-invalid-dep enabled, CPU-only, 8 CPUs, 30-minute limit. It checks dictionaries and metadata structure and exports aggregate diagnostics only.
 - Latest synchronized code revision is 5b56cc1. All three jobs were pending at last snapshot: acquisition/smoke for Priority, discovery for Dependency. No patient data download or GPU execution had started.
 - Additional acquisition and safe-path parser tests are committed but not yet run; the previous successful suite count remains 22. Do not report new tests as passed until the queued CPU job executes them.
+
+## 20 October 2026 — acquisition/inspection complete and repository cleanup
+
+- Acquisition 215029 completed successfully in 1:55:32. All nine required IV tables and two CXR metadata CSVs verified; 25 tests passed.
+- Inspection 215035 completed successfully in 15 seconds; 25 tests passed. Metadata has 65,086 distinct patients, no timing columns, and patient-level rows containing image lists. 136/200 sampled image paths matched unique archive-member basenames. All 200 retained original study structure. Continue variant A; no timestamp metadata acquired.
+- GPU smoke 215030 still pending for Priority at 19:48 Singapore time. No GPU capacity assumed available.
+- User requested cleanup of obsolete exploratory/setup code. Removed completed Windows preflight and duplicate cache helpers; moved reproducible Slurm stages to scripts/slurm and data modules to src/icu_mm/data. Kept acquisition/inspection for reproducibility and synthetic tests for leakage controls. No raw data, environments, archives, or results deleted.
+- Updated README, runbook and DATA_REPORT. Removed the obsolete tracked BLOCKED.md because no active blocker exists. The historical setup assertion failure remains recorded above.
+- Candidate cohort builder added: deterministic first-stay/adult filters, strict first-AP/otherwise-PA selection, image decode verification, alive-at-48h and LOS constraints, label consistency counts, early-filtered DuckDB event scans, resumable compact subsets, and actual unit-count diagnostics. Final folds are deferred until valid-value QC and final observation eligibility. New cohort tests pending execution.
+- Conservative handling of inconsistent outcome metadata: flag 1 with missing hospital deathtime, or flag 0 with a deathtime, is excluded from the main landmark cohort and counted. S0 omits the landmark filter as specified. Date-only dod is cross-checked by date and never assigned a fictitious time for the landmark filter.

@@ -20,4 +20,4 @@ cleanup() {
 trap cleanup EXIT
 cd "$P/code"
 "$P/envs/icumm/bin/python" -m pytest -q
-"$P/envs/icumm/bin/python" -m icu_mm.download
+"$P/envs/icumm/bin/python" -m icu_mm.data.acquisition

@@ -1,11 +1,11 @@
 #!/bin/bash -l
-#SBATCH --job-name=icudiscovery
+#SBATCH --job-name=icucohort
 #SBATCH --partition=cluster02
 #SBATCH --account=ug-proj
 #SBATCH --qos=ug
 #SBATCH --cpus-per-task=8
-#SBATCH --time=00:30:00
-#SBATCH --output=/projects/icumultimodal/reports/icudiscovery-%j.out
+#SBATCH --time=02:00:00
+#SBATCH --output=/projects/icumultimodal/reports/icucohort-%j.out
 set -euo pipefail
 source /projects/icumultimodal/cacheconfig.sh
 export PYTHONNOUSERSITE=1
@@ -20,9 +20,6 @@ cleanup() {
 }
 trap cleanup EXIT
 cd "$P/code"
+git rev-parse HEAD
 "$P/envs/icumm/bin/python" -m pytest -q
-if test -f "$P/results/discovery/summary.json"; then
-  printf 'DISCOVERY_ALREADY_COMPLETE\n'
-else
-  "$P/envs/icumm/bin/python" -m icu_mm.discovery
-fi
+"$P/envs/icumm/bin/python" -m icu_mm.data.cohort

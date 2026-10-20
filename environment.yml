@@ -4,5 +4,5 @@ channels:
 dependencies:
   - python=3.11.12
   - pip=25.1.1
-# scripts/setupenv.sh installs pinned CUDA 12.8 torch/torchvision wheels,
+# scripts/slurm/setup_environment.sbatch installs pinned CUDA 12.8 torch/torchvision wheels,
 # then requirements.txt. Full resolved versions are saved on the SSD.

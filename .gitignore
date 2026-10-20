@@ -1,8 +1,8 @@
-data/
-raw/
-results/
-envs/
-.tmp/
+/data/
+/raw/
+/results/
+/envs/
+/.tmp/
 .venv/
 __pycache__/
 .pytest_cache/
@@ -22,3 +22,8 @@ kaggle.json
 *secret*
 *.key
 id_ed25519*
+*.egg-info/
+build/
+dist/
+!reports/tables/*.csv
+!reports/figures/*.png

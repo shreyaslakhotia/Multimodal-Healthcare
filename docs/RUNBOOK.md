@@ -1,31 +1,86 @@
-# Initial runbook
+# Research runbook
 
-## Status
+## Storage and environment
 
-SSH key access, project tiers, private target permissions, cache configuration and quotas have been verified. CPU environment installation is complete. Job 215024 passed 22 synthetic tests and pip dependency checks. No clinical benchmark results exist yet.
+Active SSD: /projects/icumultimodal (100 GB assigned).
+HDD originals: /projects/icumultimodalarchive/zips (200 GB assigned).
+Checkout: $P/code. Environment: $P/envs/icumm. Raw inputs: $P/raw.
+Interim patient artifacts: $P/data/interim. Outputs: $P/results and $P/reports.
+Account allowances are 150 GB SSD and 300 GB HDD; assigned limits govern.
+Project target modes are 2700 (private, setgid); inspect with stat -L.
 
-Active workflow as of 20 October 2026: data acquisition 215029 (queued), L40 GPU smoke 215030 (queued), source discovery 215035 (depends on successful completion of 215029). Additional acquisition/discovery tests run before the corresponding long CPU jobs.
+Explicitly source /projects/icumultimodal/cacheconfig.sh in every job. It is
+also sourced by .bashrc. Use job-specific scratch and validated cleanup targets.
+No large files, environments or caches go in HOME or /tmp.
 
-Confirmed assignments: SSD 100 GB, HDD 200 GB. Conservative acquisition plan is 79.8 GB of SSD usage including reserves. GPU smoke requests one L40 for at most five minutes (at most 20 SU at the documented rate). No GPU SU had been consumed at last check.
+Python 3.11.12, PyTorch 2.8.0+cu128, torchvision 0.23.0+cu128. Dependencies are
+pinned in requirements.txt; resolved pipfreeze.txt and condaexplicit.txt live
+in $P/results/setup.
 
-Local dedicated key path is ~/.ssh/icubenchmark. Commands must use explicit identity selection and BatchMode; never read or print private key contents. For Windows SSH, encode non-secret shell scripts as UTF-8 base64 and pipe to bash -l remotely to preserve quoting and initialize modules. Do not encode secrets into shell command lines.
+## Batch commands
 
-Code mirror is a committed Git checkout at /projects/icumultimodal/code. Latest synchronized revision when acquisition/discovery were queued: 5b56cc1. Use Git bundles for synchronization; do not manually edit source files on the cluster.
+Run only the needed stage, not every line together:
 
-## Infrastructure preflight
+```bash
+source /projects/icumultimodal/cacheconfig.sh
+cd "$P/code"
+sbatch scripts/slurm/setup_environment.sbatch  # one-time setup
+sbatch scripts/slurm/check_cpu.sbatch
+sbatch scripts/slurm/acquire_data.sbatch
+sbatch scripts/slurm/inspect_data.sbatch
+sbatch scripts/slurm/build_cohort.sbatch
+# Select ONE supported GPU model from live sinfo output:
+sbatch --gres=gpu:l40:1 scripts/slurm/check_gpu.sbatch
+```
 
-Run `scripts/preflight.ps1` in a local PowerShell window, entering the password directly at SSH's prompt. If the host key is new, compare its fingerprint with the cluster Quick Start before accepting. Expected documented fingerprint at review time: `SHA256:AhYlWQBTsN/4GAzYTVTiZzrVhPhcurFMu1sBMglqvdM`.
+Entry points run synthetic tests before long jobs. Acquisition and inspection
+are reproducibility stages, not disposable exploration. Cohort outputs remain
+candidates until event-unit QC and valid observation eligibility are finalized.
+Persist final folds once after that step.
 
-The script checks exact project links, permissions, filesystem capacity, exported cache configuration, existence of a few standard directories, Kaggle credential-file permissions, user jobs, account/QoS, node availability and monthly accounting. It does not inspect dataset contents or print secrets. Filesystem free space is not the user's project allowance: also verify project quota with storagemgr.
+## Monitor and resource limits
 
-SSH authentication does not persist to later agent commands. For autonomous follow-up, configure a dedicated SSH key from the local machine with the user entering the password in their own terminal. Never put the SSH password in a script, chat, environment variable, or command line.
+```bash
+squeue --me
+sacct -j JOB_ID --format=JobID,JobName,State,Elapsed,ExitCode
+tail -f /projects/icumultimodal/reports/JOB_LOG.out
+```
 
-## Cache configuration
+Ctrl+C stops watching without cancelling jobs. Pending Priority has no reliable
+ETA. Keep at most two running and five submitted jobs and two SSH sessions.
+Never retry rejected submissions with variations. CPU jobs cost no SU. GPU
+stage cap is 30,000 SU; stop at 21,000 stage SU. Track this stage's jobs, not
+just monthly account usage. A five-minute L40 smoke can use at most 20 SU.
 
-Cache configuration is installed at /projects/icumultimodal/cacheconfig.sh and sourced from .bashrc; its previous content was backed up on SSD. Source the same block explicitly in batch jobs; noninteractive SSH must not be assumed to read .bashrc.
+## Local source and synchronization
 
-For each batch job, set TMPDIR to a unique directory under `$P/.tmp` using SLURM_JOB_ID. Cleanup must check that the resolved deletion target is inside that scratch directory. No environments or package caches go in HOME or /tmp.
+Local source: C:/Users/lakho/Desktop/NTU/Multimodal Healthcare Project/icubenchmark.
+Dedicated SSH key: ~/.ssh/icubenchmark; explicit identity and BatchMode required.
+Never read or print the private key. Non-secret shell scripts may be UTF-8/base64
+encoded for Windows SSH quoting and piped to bash -l to initialize modules.
+Never put secrets in command arguments.
+
+Commit locally, transfer a Git bundle to $P/.tmp, then fast-forward the clean
+cluster checkout. Do not edit remote code by hand. Do not change code used by
+running experiments; record output revisions. Pending GPU job 215030 uses Slurm's
+saved script and imports icu_mm.models, unchanged by repository reorganization.
 
 ## Data boundary
 
-The user confirmed required access authorization after reviewing the conflict between uploader license labels and the included PhysioNet license. Preserve this provenance caveat. Run all inspection, extraction, report parsing and modeling as Slurm jobs, outputting aggregate diagnostics only. No patient records, paths containing patient identifiers, report fragments, images or per-patient predictions may be returned through AI tool output.
+All processing runs in Slurm allocations. No recursive filesystem scans over
+dataset/image directories. ZIP central-directory metadata is used for image
+mapping. No patient rows, paths, images, report text, embeddings or predictions
+enter Git or online AI-service output. Export aggregate diagnostics only.
+
+The user confirmed access authorization after reviewing the uploader-label versus
+included-license discrepancy. Preserve that provenance caveat.
+
+## Completed stages
+
+- Setup 215010 installed packages but hit an expected-array test shape bug.
+  The correction passed in CPU job 215024 (22 tests).
+- Acquisition 215029 completed in 1:55:32; nine IV tables and two CXR metadata
+  CSVs verified; originals kept on HDD; 25 tests passed.
+- Inspection 215035 completed in 15 seconds; 65,086 metadata patients, no time
+  columns, 136/200 sampled paths matched archive members; 25 tests passed.
+- GPU smoke 215030 remains queued at the latest check.

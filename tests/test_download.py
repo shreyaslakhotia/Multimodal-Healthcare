@@ -2,7 +2,7 @@ import hashlib
 import io
 import zipfile
 import pytest
-from icu_mm import download
+from icu_mm.data import acquisition as download
 
 
 def test_copy_is_size_verified_before_finalization(tmp_path):
