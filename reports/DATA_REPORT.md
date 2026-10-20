@@ -1,57 +1,63 @@
-# Source data report — 20 October 2026
+# Source data report
 
-## Acquisition and provenance
+Updated 20 October 2026. Nine MIMIC-IV tables total 42,081,445,897 uncompressed
+bytes. Acquisition job 215029 completed in 1:55:32. SHA256 digests and byte
+counts are recorded; these are computed locally, not independently checked
+upstream digests. Original ZIP backups and the CXR ZIP remain on HDD. Only
+required tables, metadata and derived training artifacts are on SSD.
 
-CPU job 215029 completed successfully in 1:55:32. The nine specified MIMIC-IV
-tables total 42,081,445,897 uncompressed bytes. SHA256 digests and verified byte
-counts are retained in `$P/results/acquisition`; computed digests do not establish
-independent upstream checksum verification. Physical CSV row counts have not
-yet been validated. Original backups and the CXR ZIP remain on HDD; only required
-IV tables and two CXR metadata CSVs are on SSD.
+The Kaggle IV page says MIT, but the included license is PhysioNet Credentialed
+Health Data License 1.5.0. The user confirmed required access authorization after
+reviewing that discrepancy. The included license remains the provenance record.
 
-The Kaggle IV page is labeled MIT, but its LICENSE.txt states PhysioNet
-Credentialed Health Data License 1.5.0. The user confirmed required authorization
-after reviewing this discrepancy. Preserve the included license as provenance.
+## Verified source counts
 
-## CXR structure
+CPU job 215533 counted data rows, excluding headers.
 
-Inspection job 215035 completed successfully. Metadata has 64,586 and 500 rows,
-each with a unique patient within its file, and 65,086 patients across both
-files. Rows contain image lists grouped by view. Combined image lists contain
-371,951 entries, not a verified count of readable images.
+| Table | Rows |
+|---|---:|
+| admissions | 431,088 |
+| patients | 299,777 |
+| labevents | 118,057,948 |
+| d_labitems | 1,623 |
+| diagnoses_icd | 4,752,265 |
+| d_icd_diagnoses | 109,775 |
+| icustays | 73,141 |
+| chartevents | 314,035,266 |
+| d_items | 4,014 |
 
-Neither CSV has a date/time column. All 200 sampled frontal paths retain original
-patient/study structure. User-supplied MIMIC-CXR metadata might permit later
-timestamp alignment; no such metadata has been obtained or used.
+## CXR and text structure
 
-Of 200 sampled frontal paths, 136 matched unique ZIP-member basenames. None
-matched stored paths verbatim. This measures path availability, not decoding.
-Each selected image must resolve unambiguously and decode before inclusion.
+Two metadata CSVs contain 64,586 and 500 distinct patients, 65,086 combined,
+and 371,951 image-list entries. List entries are not a verified image count.
+Neither CSV has timestamps. The primary choice is first listed AP, otherwise
+first PA; no fallback if that selected file is unavailable. Final main images
+resolve uniquely, decode successfully, and match their source patient identity
+(6,225 checked; zero mismatches or unparsed identities). The alternate same-view
+selection differs for 5,085 patients. Frozen feature extraction cached 11,310
+unique primary/alternate images for reuse without repeated archive decoding.
 
-Variant A remains: first listed AP, otherwise first PA, without falling back to
-another image if the selected image is missing. Inputs are untimed and may come
-from another admission or after the prediction window. Image-associated gains
-or losses are exploratory, not clean temporal evidence.
+All 6,225 original text values are list encoded. Text-entry count matches study
+count in every patient; 5,395 have multiple studies and 5,389 have multiple
+distinct text entries. Thus text audit combines longitudinal studies rather than
+one contemporaneous report per selected image. Timing and original/augmented
+text provenance are unverified. Text is excluded from the main benchmark.
+A line-anchored parser missed inline headers in audit version one; that version
+is preserved, superseded by the explicit inline_headers_v2 audit namespace.
+See REPORT_AUDIT.md for corrected results. No patient text was exported.
 
-## Report text
+## Cohort, units and QC
 
-Original and augmented text columns exist. In the first 20 inspected rows per
-CSV, strings differed in every case. This does not establish augmentation
-method, provenance or timing. No text enters the main benchmark. Section parsing
-and outcome-language auditing remain pending; no patient text was exported.
+Final main cohort: 6,225 first adult ICU stays, 705 deaths; S0 diagnostic cohort:
+13,086 stays, 1,226 deaths. Main eligibility requires survival and ICU residence
+at 48 hours and valid HR plus numeric lab observations. See COHORT_REPORT.md.
+All actual vital/lab event units match intended units. Broad fixed artifact
+bounds are in configs/features.yaml; final QC removed no further eligible stays.
+GCS requires all three components within the same hour; ETT verbal responses
+are unassessable/missing. Bicarbonate 50803 is calculated whole-blood bicarbonate,
+whereas 50882 is chemistry bicarbonate. Train-only imputation, normalization,
+vocabulary and PCA are applied within persisted partitions.
 
-## Item definitions and units
-
-All 15 specified vital IDs and 17 specified lab IDs exist with labels consistent
-with the listed concepts. Bicarbonate 50803 is calculated whole-blood bicarbonate;
-50882 is chemistry bicarbonate. Document these contexts when merging.
-
-Vital dictionary units are bpm, mmHg, respiratory rate per minute, SpO2 percent,
-and Celsius/Fahrenheit; GCS components have no dictionary unit. The lab dictionary
-has no unit field. Actual event-unit counts will be produced before features.
-Lab-unit verification and physiological QC are not yet complete.
-
-## Pending
-
-Candidate funnel, image decode counts, label consistency, event-unit verification,
-valid-value QC, final observation eligibility and final folds.
+EHR timing is controlled to [intime, intime + 48 hours). CXR and report timing
+cannot be established; their exploratory associations cannot establish temporally
+clean clinical benefit. No timed metadata has been acquired.

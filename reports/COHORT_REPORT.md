@@ -36,3 +36,11 @@ are in `vitals_unitcounts.json` and `labs_unitcounts.json` on the cluster.
 
 CXR remains untimed variant A. After valid-value QC, observation eligibility will
 be rechecked, final folds persisted once, and positive counts per fold reported.
+
+## Finalization
+
+Feature/QC job 215456 completed successfully in 15 seconds after 35 tests passed.
+No additional stays were removed: the final main cohort is 6,225 stays/705 deaths,
+and S0 is 13,086/1,226. Final outer-fold positive counts are 136, 158, 125, 141,
+145. Fold assignments and inner partitions are persisted under `$P/data/processed`;
+no fold has fewer than 40 positives. No global normalization was fitted.

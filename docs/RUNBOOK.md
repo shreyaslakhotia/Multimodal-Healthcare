@@ -35,9 +35,7 @@ sbatch --gres=gpu:l40:1 scripts/slurm/check_gpu.sbatch
 ```
 
 Entry points run synthetic tests before long jobs. Acquisition and inspection
-are reproducibility stages, not disposable exploration. Cohort outputs remain
-candidates until event-unit QC and valid observation eligibility are finalized.
-Persist final folds once after that step.
+are reproducibility stages, not disposable exploration. Final cohort QC and observation eligibility are complete; outer folds are persisted. Do not regenerate partitions after seeing results.
 
 ## Monitor and resource limits
 
@@ -86,5 +84,47 @@ included-license discrepancy. Preserve that provenance caveat.
   columns, 136/200 sampled paths matched archive members; 25 tests passed.
 - GPU smoke 215030 remains queued at the latest check.
 - Candidate cohort 215446 completed in 3:15 with 28 tests passed: 6,225
-  candidate stays and 705 deaths. Actual event units reviewed; final value QC
-  and persisted folds are the next CPU stage.
+  stays and 705 deaths. Final QC and persisted folds subsequently completed
+  in job 215456; no additional eligible stays were removed.
+
+
+## Benchmark stages and current status
+
+The following CPU stages are complete; rerun only for reproducibility or a
+justified correction. Cached results are protected by implementation signatures.
+
+```bash
+sbatch scripts/slurm/run_baselines.sbatch
+sbatch scripts/slurm/extract_cxr_cpu.sbatch
+sbatch scripts/slurm/run_cxr_baselines.sbatch
+sbatch scripts/slurm/aggregate_results.sbatch
+sbatch scripts/slurm/render_figures.sbatch
+sbatch scripts/slurm/verify_sources.sbatch
+sbatch scripts/slurm/audit_reports.sbatch
+```
+
+Final main cohort: 6,225 / 705 deaths. Forty-eight tabular configurations and
+44 paired contrasts are in reports/tables; ROC/PR, confusion and leave-one-out
+figures are in reports/figures. The corrected report audit uses the versioned
+results/report_audit/inline_headers_v2 directory; preserve superseded V1 outputs.
+
+GPU smoke 215030 waits for Priority. E2 job 215538 is already submitted with
+afterok dependencies on 215030 and completed source check 215533. Do not submit
+a duplicate. It requests one L40 for four hours (at most 960 SU). Fixed E2 is
+four encoders x five folds x three seeds, with per-epoch resume checkpoints and
+inner-validation early stopping. GPU behavior remains unverified until smoke
+executes. No E2 results exist yet. E3-E6 remain to be implemented/run.
+
+For the currently queued work:
+
+```bash
+squeue --me
+sacct -j 215030,215538 --format=JobID,JobName,State,Elapsed,ExitCode
+# Once E2 starts:
+tail -f /projects/icumultimodal/reports/icue2-215538.out
+```
+
+Pending Priority has no dependable remaining-time estimate. Never select the
+ARM gh200 node to bypass the queue for this x86 environment. Total GPU SU for
+these jobs is zero while pending. Consult results/setup/gpujobs.txt for the
+stage job registry and account only actual allocated time after execution.

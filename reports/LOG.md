@@ -67,3 +67,26 @@
 - GCS ETT verbal response is treated as unassessable/missing, not a score of one. Use valid recorded numeric components (or leading coded-text score if absent), hourly component means, and require all three components within the same hour. No cross-hour component assembly.
 - Added fixed LightGBM (AUROC early stopping), train-only context vocabularies with explicit unknown slots, hourly aggregation/summary functions, and tests locally in be94fb2. New code has not yet been tested or synced while the cohort job was running. Feature/fold builder and QC tests now prepared for the next CPU validation.
 - Final main folds will be fixed only after QC. S0 has separately persisted seed-42 grouped stratified partitions solely for its diagnostic comparison. No global normalizer, imputer or PCA fit is performed during feature construction.
+
+## Final CPU checkpoint and GPU queue
+
+- Feature QC/folds 215456 completed; 35 tests. EHR baselines 215460 completed
+  in 2:39; 36 tests. Frozen CXR features 215471 completed in 3:59; 39 tests.
+  CXR baselines 215480 completed in 54 seconds; 40 tests. Aggregation 215486
+  completed in 2:27 and plots 215492 in four seconds.
+- Final cohort 6,225/705 deaths; 48 tabular configurations, 44 paired contrasts.
+  No statistically supported CXR gain; all full-minus-EHR AUROC/AUPRC intervals
+  include zero. Image timing remains unknown. Final mask-only LightGBM 0.687
+  exceeds the warning threshold; no prespecified hard stop was triggered.
+- E2 CPU validation 215519 passed 44 tests and dependency checks. Source row
+  counts/report container check 215533 completed in 22 seconds. E2 job 215538
+  is queued after GPU smoke 215030; no deep results or GPU SU consumed yet.
+- Report audit V1 215500 used a defective line-anchored section parser. The
+  independent structure check revealed inline headers. Corrected parser tests
+  and V2 source committed f1122d5; V2 job 215559 passed 45 tests and completed
+  in 1:29. Preserve V1, cite only V2 section results. FINDINGS AUROC 0.679,
+  IMPRESSION 0.696; unknown timing/multiple studies exclude text from main use.
+- Aggregate tables, plots, checkpoint, canary and source/audit reports are now
+  organized under reports/. Patient data, predictions and checkpoints remain
+  private cluster artifacts outside Git. No speculative exploratory scripts
+  were retained; reproducible acquisition and inspection stages are retained.
