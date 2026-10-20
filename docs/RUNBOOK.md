@@ -1,25 +1,145 @@
-# Research runbook
+# Repository and cluster run guide
 
-## Storage and environment
+Permanent operating guide for this project. For dated results and job history,
+see [the checkpoint](../reports/CHECKPOINT_1.md) and [execution log](../reports/LOG.md).
+For scientific decisions, see [the protocol](PROTOCOL.md). Do not rerun completed
+stages merely because they appear in the commands below.
 
-Active SSD: /projects/icumultimodal (100 GB assigned).
-HDD originals: /projects/icumultimodalarchive/zips (200 GB assigned).
-Checkout: $P/code. Environment: $P/envs/icumm. Raw inputs: $P/raw.
-Interim patient artifacts: $P/data/interim. Outputs: $P/results and $P/reports.
-Account allowances are 150 GB SSD and 300 GB HDD; assigned limits govern.
-Project target modes are 2700 (private, setgid); inspect with stat -L.
+## Connect and locate the project
 
-Explicitly source /projects/icumultimodal/cacheconfig.sh in every job. It is
-also sourced by .bashrc. Use job-specific scratch and validated cleanup targets.
-No large files, environments or caches go in HOME or /tmp.
+Connect to NTUSECURE or the NTU VPN first. From local PowerShell:
 
-Python 3.11.12, PyTorch 2.8.0+cu128, torchvision 0.23.0+cu128. Dependencies are
-pinned in requirements.txt; resolved pipfreeze.txt and condaexplicit.txt live
-in $P/results/setup.
+```powershell
+ssh -i C:\Users\lakho\.ssh\icubenchmark -o IdentitiesOnly=yes shreyas010@10.97.216.128
+```
 
-## Batch commands
+The following commands run inside the resulting cluster shell:
 
-Run only the needed stage, not every line together:
+```bash
+source /projects/icumultimodal/cacheconfig.sh
+cd /projects/icumultimodal/code
+```
+
+| Location | Contents |
+|---|---|
+| /projects/icumultimodal | SSD project; 100 GB assigned quota |
+| /projects/icumultimodalarchive | HDD project; 200 GB assigned quota |
+| $P/code | Git source checkout |
+| $P/raw | Required extracted source tables and CXR metadata |
+| $P/data/interim | Private cohort, features and persisted patient partitions |
+| $P/envs/icumm | Python environment |
+| $P/.tmp | Caches and per-job scratch |
+| $P/results | Private predictions, models, checkpoints and aggregate results |
+| $P/reports | Batch logs and generated figures |
+| /projects/icumultimodalarchive/zips | Original archives/backups |
+
+The account allowances are 150 GB SSD and 300 GB HDD; the project-assigned
+quotas above govern these folders. The project roots are symlinks; use stat -L
+to inspect target permissions (2700: private, setgid). Nothing is backed up by
+the cluster. Active repeated reads belong on SSD.
+
+## Check storage usage
+
+Run the interactive quota tool in an SSH login session:
+
+```bash
+storagemgr
+```
+
+It shows assigned quotas and usage for both projects. Press q to exit. This
+requires an interactive login shell; an uninitialized remote command may not
+find storagemgr. Do not use df to infer your quota: it reports filesystem-wide
+capacity shared by the cluster.
+
+For a fast noninteractive size check, use Ceph's directory byte counters:
+
+```bash
+for project in /projects/icumultimodal /projects/icumultimodalarchive; do
+  bytes=$(getfattr --only-values -n ceph.dir.rbytes "$project" 2>/dev/null) || continue
+  awk -v p="$project" -v b="$bytes" 'BEGIN {printf "%s: %.2f GB (%.2f GiB)\n", p, b/1e9, b/1073741824}'
+done
+```
+
+This reads directory metadata, without walking the files. It measures current
+recursive file bytes, including environment, caches, checkpoints and outputs;
+it is not a cumulative network-download counter. Quota-manager usage may differ
+in accounting or update timing. To inspect downloaded inputs separately:
+
+```bash
+getfattr --only-values -n ceph.dir.rbytes /projects/icumultimodal/raw
+printf '\n'
+getfattr --only-values -n ceph.dir.rbytes /projects/icumultimodalarchive/zips
+printf '\n'
+```
+
+Those values are bytes. SSD extraction and HDD backups overlap, so their sum is
+not unique source data. Acquisition manifests in $P/results/acquisition record
+verified file sizes and SHA256 digests. Avoid recursive du/find over project
+or dataset trees on login nodes. Use storagemgr if Ceph counters are unavailable.
+
+## Monitor jobs and interpret waiting
+
+```bash
+squeue --me
+squeue --start -j 215030,215538
+sacct -j 215030,215538 --format=JobID,JobName,State,Elapsed,ExitCode
+date '+%Y-%m-%d %H:%M:%S %Z (%z)'
+```
+
+Replace job IDs for future runs. Start estimates use the cluster's timezone
+(currently UTC); Singapore is UTC+8. Estimated start times can move or be N/A.
+Priority means waiting for scheduler resources/priority. Dependency means a
+prerequisite must finish successfully. A completed dependency makes the next
+job eligible; it does not reserve a GPU or guarantee immediate execution.
+
+At the 20 October checkpoint, smoke 215030 is queued and E2 215538 already has
+an afterok dependency on it and completed source check 215533. Do not submit
+another copy. Current output paths are:
+
+```bash
+tail -f /projects/icumultimodal/reports/icusmoke-215030.out
+tail -f /projects/icumultimodal/reports/icue2-215538.out
+```
+
+Logs appear only after their jobs start. Ctrl+C ends tail without cancelling
+the job. Check every 30-60 minutes while pending; no terminal needs to remain
+open. Batch jobs and their dependencies survive SSH disconnection. On failure,
+inspect sacct and the matching log before resubmitting. ExitCode 0:0 together
+with COMPLETED indicates scheduler-level success; also verify stage output.
+
+Smoke has a five-minute limit. E2 requests four hours per allocation, which is
+a limit rather than a measured completion estimate. E2 checkpoints each epoch;
+a timeout requires a reviewed resume submission, not an assumption that all
+60 encoder/fold/seed fits finished. After E2, evaluate the encoder results and
+proceed to E3 fusion baselines, E4 cross-attention, E5 ablations/missingness and
+E6 secondary diagnosis, within the protocol priorities and remaining budget.
+
+## Environment, caches and resource rules
+
+Every job explicitly sources /projects/icumultimodal/cacheconfig.sh, also sourced
+by .bashrc. Set job-specific TMPDIR under $P/.tmp and validate cleanup targets.
+No environments, downloads or large caches go in HOME or /tmp. XRV downloads
+need explicit cache_dir=$P/.tmp/torch/xrv. Python is 3.11.12, torch 2.8.0+cu128,
+torchvision 0.23.0+cu128; direct requirements are pinned. Resolved environment
+records are $P/results/setup/pipfreeze.txt and condaexplicit.txt.
+
+Login nodes are for light editing, metadata and submission. Installs, tests,
+data processing and training run in Slurm. No recursive dataset scans. Request
+exactly one supported GPU model, e.g. --gres=gpu:l40:1. Do not request GPU-job
+CPU/memory overrides or exclusive nodes; do not use salloc or install toolchains.
+The gh200 is ARM and incompatible with this x86 environment. Check live sinfo
+rather than assuming GPU availability. Never retry a rejected job with variants.
+Keep at most two SSH sessions, two running jobs and five submitted jobs.
+
+CPU jobs consume no GPU SU. The stage cap is 30,000 SU, with a stop threshold
+of 21,000 SU. Track actual allocated GPU time for this stage using the registry
+$P/results/setup/gpujobs.txt, not monthly account use alone. Pending jobs consume
+no GPU runtime. The requested L40 smoke and E2 maxima are 20 and 960 SU.
+
+## Reproduce stages
+
+Run only the stage needed, in dependency order; synthetic tests gate batch
+entrypoints. These commands are examples, not a script to paste all at once.
 
 ```bash
 source /projects/icumultimodal/cacheconfig.sh
@@ -30,70 +150,6 @@ sbatch scripts/slurm/acquire_data.sbatch
 sbatch scripts/slurm/inspect_data.sbatch
 sbatch scripts/slurm/build_cohort.sbatch
 sbatch scripts/slurm/build_features.sbatch
-# Select ONE supported GPU model from live sinfo output:
-sbatch --gres=gpu:l40:1 scripts/slurm/check_gpu.sbatch
-```
-
-Entry points run synthetic tests before long jobs. Acquisition and inspection
-are reproducibility stages, not disposable exploration. Final cohort QC and observation eligibility are complete; outer folds are persisted. Do not regenerate partitions after seeing results.
-
-## Monitor and resource limits
-
-```bash
-squeue --me
-sacct -j JOB_ID --format=JobID,JobName,State,Elapsed,ExitCode
-tail -f /projects/icumultimodal/reports/JOB_LOG.out
-```
-
-Ctrl+C stops watching without cancelling jobs. Pending Priority has no reliable
-ETA. Keep at most two running and five submitted jobs and two SSH sessions.
-Never retry rejected submissions with variations. CPU jobs cost no SU. GPU
-stage cap is 30,000 SU; stop at 21,000 stage SU. Track this stage's jobs, not
-just monthly account usage. A five-minute L40 smoke can use at most 20 SU.
-
-## Local source and synchronization
-
-Local source: C:/Users/lakho/Desktop/NTU/Multimodal Healthcare Project/icubenchmark.
-Dedicated SSH key: ~/.ssh/icubenchmark; explicit identity and BatchMode required.
-Never read or print the private key. Non-secret shell scripts may be UTF-8/base64
-encoded for Windows SSH quoting and piped to bash -l to initialize modules.
-Never put secrets in command arguments.
-
-Commit locally, transfer a Git bundle to $P/.tmp, then fast-forward the clean
-cluster checkout. Do not edit remote code by hand. Do not change code used by
-running experiments; record output revisions. Pending GPU job 215030 uses Slurm's
-saved script and imports icu_mm.models, unchanged by repository reorganization.
-
-## Data boundary
-
-All processing runs in Slurm allocations. No recursive filesystem scans over
-dataset/image directories. ZIP central-directory metadata is used for image
-mapping. No patient rows, paths, images, report text, embeddings or predictions
-enter Git or online AI-service output. Export aggregate diagnostics only.
-
-The user confirmed access authorization after reviewing the uploader-label versus
-included-license discrepancy. Preserve that provenance caveat.
-
-## Completed stages
-
-- Setup 215010 installed packages but hit an expected-array test shape bug.
-  The correction passed in CPU job 215024 (22 tests).
-- Acquisition 215029 completed in 1:55:32; nine IV tables and two CXR metadata
-  CSVs verified; originals kept on HDD; 25 tests passed.
-- Inspection 215035 completed in 15 seconds; 65,086 metadata patients, no time
-  columns, 136/200 sampled paths matched archive members; 25 tests passed.
-- GPU smoke 215030 remains queued at the latest check.
-- Candidate cohort 215446 completed in 3:15 with 28 tests passed: 6,225
-  stays and 705 deaths. Final QC and persisted folds subsequently completed
-  in job 215456; no additional eligible stays were removed.
-
-
-## Benchmark stages and current status
-
-The following CPU stages are complete; rerun only for reproducibility or a
-justified correction. Cached results are protected by implementation signatures.
-
-```bash
 sbatch scripts/slurm/run_baselines.sbatch
 sbatch scripts/slurm/extract_cxr_cpu.sbatch
 sbatch scripts/slurm/run_cxr_baselines.sbatch
@@ -103,28 +159,54 @@ sbatch scripts/slurm/verify_sources.sbatch
 sbatch scripts/slurm/audit_reports.sbatch
 ```
 
-Final main cohort: 6,225 / 705 deaths. Forty-eight tabular configurations and
-44 paired contrasts are in reports/tables; ROC/PR, confusion and leave-one-out
-figures are in reports/figures. The corrected report audit uses the versioned
-results/report_audit/inline_headers_v2 directory; preserve superseded V1 outputs.
-
-GPU smoke 215030 waits for Priority. E2 job 215538 is already submitted with
-afterok dependencies on 215030 and completed source check 215533. Do not submit
-a duplicate. It requests one L40 for four hours (at most 960 SU). Fixed E2 is
-four encoders x five folds x three seeds, with per-epoch resume checkpoints and
-inner-validation early stopping. GPU behavior remains unverified until smoke
-executes. No E2 results exist yet. E3-E6 remain to be implemented/run.
-
-For the currently queued work:
+For a future fresh GPU run, first choose a supported model from live sinfo:
 
 ```bash
-squeue --me
-sacct -j 215030,215538 --format=JobID,JobName,State,Elapsed,ExitCode
-# Once E2 starts:
-tail -f /projects/icumultimodal/reports/icue2-215538.out
+sbatch --gres=gpu:l40:1 scripts/slurm/check_gpu.sbatch
+# After that smoke succeeds, or with an explicit afterok dependency:
+sbatch --gres=gpu:l40:1 scripts/slurm/train_unimodal.sbatch
 ```
 
-Pending Priority has no dependable remaining-time estimate. Never select the
-ARM gh200 node to bypass the queue for this x86 environment. Total GPU SU for
-these jobs is zero while pending. Consult results/setup/gpujobs.txt for the
-stage job registry and account only actual allocated time after execution.
+Do not duplicate the currently submitted jobs. E2 uses fixed settings, four
+modalities, five folds and three seeds, with inner-validation early stopping.
+Final patient partitions are already fixed: do not regenerate after viewing
+results. Signature locks protect fitted-model caches from silent source changes.
+Corrected report auditing uses results/report_audit/inline_headers_v2; preserve
+V1 for provenance and cite only corrected section results.
+
+## Source organization and synchronization
+
+Local authoritative repository:
+C:/Users/lakho/Desktop/NTU/Multimodal Healthcare Project/icubenchmark.
+
+Reusable Python is in src/icu_mm, batch entrypoints in scripts/slurm, fixed
+specifications in configs, synthetic checks in tests, operating/scientific
+instructions in docs and aggregate findings in reports. Keep completed
+acquisition/inspection stages for reproducibility. Avoid disposable exploration
+scripts and duplicate setup helpers in the source tree.
+
+Commit locally, create a Git bundle, transfer it to $P/.tmp, then fetch and
+fast-forward the clean cluster checkout. Verify git status is clean before and
+after synchronization. Do not edit remote source by hand or change code used
+by a running experiment. Record its revision in the job log. Use the dedicated
+SSH identity explicitly; never print/read the private key or put secrets in
+command arguments. Non-secret shell scripts may be base64 piped to bash -l
+when necessary to avoid Windows SSH quoting errors.
+
+## Data and scientific boundaries
+
+Patient data, identifiers, report text, images, image paths, embeddings,
+predictions and checkpoints stay on the cluster outside Git. Only aggregate
+reports/figures enter Git or online AI-service output. The user confirmed data
+access authorization; preserve the included PhysioNet license despite the
+Kaggle uploader's conflicting MIT label. No API key was used for the completed
+public acquisition; future restricted downloads may need credentials.
+
+EHR inputs are limited to the first 48 hours. CXR and report timestamps are
+unknown: image associations are exploratory; report text is excluded from the
+main benchmark. Keep the mask-only warning and both count variants visible.
+See the checkpoint, canary, source-data and report-audit reports for evidence.
+
+Official references: [cluster rules](https://github.com/NTUEEECluster/docs/blob/main/skill.md),
+[Slurm](https://github.com/NTUEEECluster/docs/blob/main/slurm-guide.md) and
+[storage](https://github.com/NTUEEECluster/docs/blob/main/storage-guide.md).

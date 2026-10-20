@@ -40,7 +40,9 @@ scripts are required for this workflow.
 
 ## Reproduce
 
-Read `docs/PROTOCOL.md` and `docs/RUNBOOK.md` before running experiments. Setup,
+Start with the [repository and cluster run guide](docs/RUNBOOK.md) for SSH,
+storage/quota checks, job monitoring, reproduction and synchronization. Read the
+[scientific protocol](docs/PROTOCOL.md) before running experiments. Setup,
 tests, data processing and training run through Slurm; do not install packages
 or process data on login nodes.
 
