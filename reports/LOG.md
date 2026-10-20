@@ -48,3 +48,9 @@
 - Updated README, runbook and DATA_REPORT. Removed the obsolete tracked BLOCKED.md because no active blocker exists. The historical setup assertion failure remains recorded above.
 - Candidate cohort builder added: deterministic first-stay/adult filters, strict first-AP/otherwise-PA selection, image decode verification, alive-at-48h and LOS constraints, label consistency counts, early-filtered DuckDB event scans, resumable compact subsets, and actual unit-count diagnostics. Final folds are deferred until valid-value QC and final observation eligibility. New cohort tests pending execution.
 - Conservative handling of inconsistent outcome metadata: flag 1 with missing hospital deathtime, or flag 0 with a deathtime, is excluded from the main landmark cohort and counted. S0 omits the landmark filter as specified. Date-only dod is cross-checked by date and never assigned a fictitious time for the landmark filter.
+
+## Connectivity interruption after cleanup
+
+- Local cleanup and candidate cohort code committed as dd44d44. Git whitespace checks passed; stale import/script references were removed from current entrypoints and documentation. The new cohort tests have not run.
+- Two SCP attempts to the original cluster alias timed out after the earlier successful status read. No alternate hosts or access workarounds attempted. The bundle is saved locally, but the remote checkout still has its previous organization; no new cohort job submitted.
+- Asked the user whether the laptop remains on NTUSECURE/NTU VPN. Preserve completed datasets and existing Slurm jobs. Resume by rechecking SSH, syncing committed source, then running the expanded suite on CPU before cohort construction.
