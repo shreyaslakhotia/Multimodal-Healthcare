@@ -1,7 +1,7 @@
 # Current blockers
 
-SSH authentication is resolved. Project links, private target permissions, cache setup, account limits and initial zero SU baseline verified. CPU environment setup job 215010 is running; no GPU verification yet.
+SSH authentication is resolved. Project links, private target permissions, cache setup, account limits and initial zero SU baseline verified. CPU environment and 22 synthetic tests passed in job 215024. GPU verification is pending.
 
 Project-specific assigned quotas are SSD 100 GB and HDD 200 GB. No patient-data downloads or model training have started.
 
-Patient-data download gate: Kaggle uploader metadata says MIT for IV, but the archive's own LICENSE.txt states the PhysioNet Credentialed Health Data License 1.5.0. Obtain confirmation of applicable access authorization/provenance before using this copy. The user previously believed training and credentialing were unnecessary; this new source-file evidence must be resolved. Infrastructure and synthetic-code development can continue. Patient data must not enter online AI tools.
+The user confirmed required access authorization after review of the source-license conflict. The access gate is resolved. Retain the uploader-label versus included-license discrepancy as a provenance limitation. No current user-input blocker; patient data must not enter online AI tools.

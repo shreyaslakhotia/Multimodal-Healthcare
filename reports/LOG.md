@@ -23,3 +23,11 @@
 - Kaggle public API metadata reports 67,376,460,708 bytes for the full MIMIC-IV source; nine required tables total 42,081,445,897 bytes. MIMIC-CXR reports 17,935,573,408 bytes. Only metadata and the 2,518-byte license have been retrieved locally; no patient data downloaded.
 - Uploader metadata labels IV MIT and CXR CC0, but the IV dataset's own mimic-iv-2.1/LICENSE.txt is the PhysioNet Credentialed Health Data License 1.5.0. Treat the metadata labels as conflicting, not proof of unrestricted reuse. Patient-data downloads on hold for clarification. Continue infrastructure and synthetic testing.
 - Corrected an anticipated array-shape assertion in the forward-fill test before its execution. New window, forbidden-input and landmark guard tests added; these have not yet run.
+
+## 20 October 2026 — synthetic checks passed; data access confirmed
+
+- User explicitly confirmed required access authorization after being shown the archive-license conflict. This resolves the patient-data access gate; preserve the source-license provenance caveat in documentation.
+- Environment setup job 215010 installed packages but failed on the old forward-fill test assertion (shape mismatch in expected array). This was a test bug, not a data canary failure. Corrected the expected-array shape and ran the expanded suite in CPU job 215024.
+- Job 215024 completed successfully: 22 synthetic tests passed; pip check reported no broken requirements. Torch 2.8.0+cu128, torchvision 0.23.0+cu128, numpy 1.26.4 and sklearn 1.6.1 verified. GPU behavior remains to be checked separately.
+- Measured on CPU allocation: environment 8,268,767,768 bytes; pip cache 1,606,270,765 bytes; conda package cache 940,932,212 bytes. Conservative acquisition plan (all nine IV tables, entire uncompressed CXR size, 8 GB future artifacts/scratch, and 1 GB code/cache-growth reserve) is about 79.8 GB, below the 90 GB SSD stop point.
+- Prepared selective resumable acquisition with fixed paths, transport validation, SHA256 recording and conservative size guards. No recursive scans of dataset or image directories. CXR original ZIP stays on HDD; only CSV metadata initially extracted to SSD.
