@@ -7,6 +7,31 @@ import numpy as np
 from sklearn.metrics import roc_auc_score, average_precision_score
 
 
+def patient_intervals(y,subjects,probabilities,iterations=1000,seed=42):
+    y,subjects,probabilities=np.asarray(y),np.asarray(subjects),np.asarray(probabilities,float)
+    if not (y.ndim==subjects.ndim==probabilities.ndim==1 and len(y)==len(subjects)==len(probabilities)):
+        raise ValueError('Expected aligned one-dimensional predictions')
+    if len(set(subjects))!=len(y) or set(np.unique(y))!={0,1} or iterations<1:
+        raise ValueError('Expected unique patients, both classes, and positive draw count')
+    if not np.isfinite(probabilities).all() or np.any((probabilities<0)|(probabilities>1)):
+        raise ValueError('Invalid probabilities')
+    rng=np.random.default_rng(seed)
+    distributions={'auroc':[],'auprc':[]}
+    for _ in range(iterations):
+        indices=rng.integers(0,len(y),size=len(y))
+        if len(np.unique(y[indices]))<2:
+            continue
+        distributions['auroc'].append(roc_auc_score(y[indices],probabilities[indices]))
+        distributions['auprc'].append(average_precision_score(y[indices],probabilities[indices]))
+    if not distributions['auroc']:
+        raise ValueError('No valid bootstrap draws')
+    result={'valid_draws':len(distributions['auroc']),'requested_draws':iterations}
+    for metric,values in distributions.items():
+        lower,upper=np.percentile(values,[2.5,97.5])
+        result[metric]={'lower':float(lower),'upper':float(upper)}
+    return result
+
+
 def paired_bootstrap(y, subjects, first, second, iterations=1000, seed=42):
     y, subjects = np.asarray(y), np.asarray(subjects)
     first, second = np.asarray(first, float), np.asarray(second, float)
