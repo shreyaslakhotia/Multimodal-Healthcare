@@ -58,3 +58,12 @@
 ## Connectivity restored
 
 - User reconnected; SSH verified successfully. The remote checkout was clean at 5b56cc1, and GPU smoke 215030 remained pending. Resume synchronization and CPU validation before candidate cohort construction.
+
+## Candidate cohort complete and feature QC prepared
+
+- Cleaned source synced at fdc61cf. Candidate cohort CPU job 215446 completed in 3:15 after 28 tests passed. Main candidates: 6,225 stays/705 deaths; S0: 13,086 stays/1,226 deaths. Both exceed the support stop thresholds.
+- Actual event-unit counts inspected as aggregate diagnostics. All vital/lab units match intended measurement units; no unexpected unit was observed. Compact filtered events are about 10.5 MB vitals and 1.8 MB labs.
+- Broad artifact ranges fixed in configs/features.yaml before performance evaluation. These are researcher-defined QC bounds, not clinical decision thresholds. Retain per-channel drop counts and recheck inclusion after QC.
+- GCS ETT verbal response is treated as unassessable/missing, not a score of one. Use valid recorded numeric components (or leading coded-text score if absent), hourly component means, and require all three components within the same hour. No cross-hour component assembly.
+- Added fixed LightGBM (AUROC early stopping), train-only context vocabularies with explicit unknown slots, hourly aggregation/summary functions, and tests locally in be94fb2. New code has not yet been tested or synced while the cohort job was running. Feature/fold builder and QC tests now prepared for the next CPU validation.
+- Final main folds will be fixed only after QC. S0 has separately persisted seed-42 grouped stratified partitions solely for its diagnostic comparison. No global normalizer, imputer or PCA fit is performed during feature construction.

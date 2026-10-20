@@ -1,0 +1,31 @@
+# Broad artifact filters, not clinical decision thresholds. Fixed before scores.
+# Units were checked in the candidate cohort's actual event-unit reports.
+vitals:
+  heart_rate: {ids: [220045], units: [bpm], range: [0, 300]}
+  respiratory_rate: {ids: [220210, 224690], units: [insp/min], range: [0, 100]}
+  spo2: {ids: [220277], units: ['%'], range: [0, 100]}
+  systolic_bp: {ids: [220050, 220179], units: [mmHg], range: [0, 350]}
+  diastolic_bp: {ids: [220051, 220180], units: [mmHg], range: [0, 250]}
+  mean_bp: {ids: [220052, 220181], units: [mmHg], range: [0, 300]}
+  temperature: {ids: [223761, 223762], units: ['°F', '°C'], range: [20, 45]}
+labs:
+  glucose: {ids: [50931, 50809], units: [mg/dL], range: [0, 2000]}
+  ph: {ids: [50820], units: [units], range: [6, 8.2]}
+  hemoglobin: {ids: [51222, 50811], units: [g/dL], range: [0, 30]}
+  wbc: {ids: [51301, 51300], units: [K/uL], range: [0, 1000]}
+  platelets: {ids: [51265], units: [K/uL], range: [0, 3000]}
+  creatinine: {ids: [50912], units: [mg/dL], range: [0, 50]}
+  bun: {ids: [51006], units: [mg/dL], range: [0, 300]}
+  sodium: {ids: [50983, 50824], units: [mEq/L], range: [80, 220]}
+  potassium: {ids: [50971, 50822], units: [mEq/L], range: [1, 15]}
+  bicarbonate: {ids: [50882, 50803], units: [mEq/L], range: [0, 80]}
+  lactate: {ids: [50813], units: [mmol/L], range: [0, 50]}
+gcs:
+  eye: {id: 220739, range: [1, 4]}
+  verbal: {id: 223900, range: [1, 5]}
+  motor: {id: 223901, range: [1, 6]}
+  # ETT is unassessable verbal response, not a genuine score of one.
+  ett_policy: missing
+  # Use documented numeric component scores; fall back to a leading score in
+  # coded text only if the numeric field is absent. Require all 3 in one hour.
+  text_score_pattern: '^\s*([1-6])(?:\s|$)'

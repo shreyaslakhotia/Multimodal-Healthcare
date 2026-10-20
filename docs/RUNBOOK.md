@@ -29,6 +29,7 @@ sbatch scripts/slurm/check_cpu.sbatch
 sbatch scripts/slurm/acquire_data.sbatch
 sbatch scripts/slurm/inspect_data.sbatch
 sbatch scripts/slurm/build_cohort.sbatch
+sbatch scripts/slurm/build_features.sbatch
 # Select ONE supported GPU model from live sinfo output:
 sbatch --gres=gpu:l40:1 scripts/slurm/check_gpu.sbatch
 ```
@@ -84,3 +85,6 @@ included-license discrepancy. Preserve that provenance caveat.
 - Inspection 215035 completed in 15 seconds; 65,086 metadata patients, no time
   columns, 136/200 sampled paths matched archive members; 25 tests passed.
 - GPU smoke 215030 remains queued at the latest check.
+- Candidate cohort 215446 completed in 3:15 with 28 tests passed: 6,225
+  candidate stays and 705 deaths. Actual event units reviewed; final value QC
+  and persisted folds are the next CPU stage.
