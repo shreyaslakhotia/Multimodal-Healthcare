@@ -10,6 +10,11 @@ from torch import nn
 MODALITIES = ('context', 'vitals', 'labs', 'cxr')
 
 
+def masked_pool(tokens,valid):
+    weight=valid.to(tokens.dtype).unsqueeze(-1)
+    return (tokens*weight).sum(dim=1)/weight.sum(dim=1).clamp_min(1)
+
+
 def sinusoidal(length, width):
     position = torch.arange(length, dtype=torch.float32)[:, None]
     divisor = torch.exp(torch.arange(0, width, 2) * (-math.log(10000.) / width))
@@ -47,6 +52,23 @@ class ModalityEncoders(nn.Module):
     def forward(self, inputs):
         return [self.context(inputs['context']).unsqueeze(1),
                 self.vitals(inputs['vitals']), self.labs(inputs['labs']), self.cxr(inputs['cxr'])]
+
+
+class UnimodalModel(nn.Module):
+    def __init__(self,modality,context_dim):
+        super().__init__()
+        if modality not in MODALITIES:
+            raise ValueError('Unknown modality')
+        self.modality=modality
+        self.encoder=getattr(ModalityEncoders(context_dim),modality)
+        self.head=nn.Linear(128,1)
+
+    def encode(self,values):
+        encoded=self.encoder(values)
+        return encoded.unsqueeze(1) if self.modality=='context' else encoded
+
+    def forward(self,values,valid):
+        return self.head(masked_pool(self.encode(values),valid)).squeeze(-1)
 
 
 class CrossAttentionBlock(nn.Module):
