@@ -36,5 +36,5 @@ deaths. Five outer folds contain 136, 158, 125, 141 and 145 deaths. Patient
 partitions are persisted; training-only preprocessing, timestamp boundaries,
 forbidden inputs, unknown categories and restart behavior are covered by tests.
 
-Current EHR results and bootstrap intervals are in `tables/initial_tabular_summary.csv`.
+Current EHR results and bootstrap intervals are in `tables/tabular_summary.csv`.
 CXR timing remains unknown and cannot be validated by EHR-only canaries.

@@ -11,7 +11,6 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from pypdf import PdfReader
-from pdf2image import convert_from_path
 
 import argparse
 parser=argparse.ArgumentParser()

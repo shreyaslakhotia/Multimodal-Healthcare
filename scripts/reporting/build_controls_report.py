@@ -12,6 +12,8 @@ def read(name): return list(csv.DictReader((SOURCE/name).open(newline='')))
 fair=read('e2_paired_comparisons.csv')
 legacy=read('e2_logistic_fold_comparisons.csv') if (SOURCE/'e2_logistic_fold_comparisons.csv').exists() else []
 summary=read('summary.csv')
+if len(summary)!=11 or any(float(row['seed_max_probability_difference'])!=0 for row in summary):
+    raise ValueError('These checkpoint narratives require the verified 11 deterministic E1 arms; review prose before reporting a different result')
 def pct(n,d): return f'{100*n/d:.2f}%'
 def fmt(x): return f'{float(x):+.4f}'
 def ci(row,metric='auroc'):

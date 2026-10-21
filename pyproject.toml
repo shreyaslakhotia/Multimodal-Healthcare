@@ -7,6 +7,11 @@ name = "icu-mm"
 version = "0.1.0"
 requires-python = ">=3.11"
 description = "Patient-separated first-48-hour ICU benchmark"
+readme = "README.md"
+
+[project.urls]
+Repository = "https://github.com/shreyaslakhotia/Multimodal-Healthcare"
+Documentation = "https://github.com/shreyaslakhotia/Multimodal-Healthcare/blob/shreyas/docs/RUNBOOK.md"
 
 [tool.setuptools.packages.find]
 where = ["src"]
