@@ -48,10 +48,13 @@ def main():
                 counter['selected_ap' if view=='AP' else 'selected_pa']+=1
                 counter['patients_with_additional_frontal_image']+=int(len(set(ap+pa)-{selected})>0)
                 counter['patients_with_same_view_listed_alternative']+=int(len(set(alternatives)-{selected})>0)
+                if view=='AP':
+                    counter['ap_selected_patients_with_ap_listed_alternative']+=int(len(set(ap)-{selected})>0)
                 if population=='main_cohort':
                     available={member for path in alternatives if (member:=resolve_member(path,names,by_basename)) is not None}
                     chosen=resolve_member(selected,names,by_basename)
                     counter['patients_with_same_view_available_alternative']+=int(bool(available-{chosen}))
+                    if view=='AP': counter['ap_selected_patients_with_ap_available_alternative']+=int(bool(available-{chosen}))
         reports[population]={'patients':len(subset),'counts':dict(counter),'listed_images_per_patient':describe(image_counts),'unique_listed_images_per_patient':describe(unique_counts),'studies_per_patient':describe(study_counts),'ap_images_per_patient':describe(ap_counts),'pa_images_per_patient':describe(pa_counts)}
     output=P/'results/data_quality/cxr_layout.json'
     output.write_text(json.dumps({'populations':reports,'timing':'No timestamps; no PhysioNet metadata requested or obtained','dicom_id':'Filename structural match only; not independently joined to canonical metadata','availability':'ZIP central directory, not repeated image decoding'},indent=2))
