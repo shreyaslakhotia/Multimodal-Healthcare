@@ -39,7 +39,7 @@ def main():
             counter['image_paths']+=len(images)
             for path in images:
                 counter['paths_with_study_id']+=int(bool(re.search(r'/(s\d+)/',path.replace('\\','/'))))
-                counter['filenames_matching_dicom_id_shape']+=int(bool(re.fullmatch(r'[0-9a-f]{40}',Path(path).stem.replace('-',''),flags=re.I)))
+                counter['filenames_matching_dicom_id_shape']+=int(bool(re.fullmatch(r'[0-9a-f]{40}',Path(path.replace('\\','/')).stem.replace('-',''),flags=re.I)))
             counter['patients_with_ap']+=int(bool(ap)); counter['patients_with_pa']+=int(bool(pa))
             counter['patients_with_multiple_images']+=int(len(set(images))>1)
             counter['patients_with_multiple_studies']+=int(len(studies)>1)

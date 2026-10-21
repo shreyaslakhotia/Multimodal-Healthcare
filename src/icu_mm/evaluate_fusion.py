@@ -12,6 +12,7 @@ from .evaluate_e2 import average_seeds
 from .aggregate import align_patients
 from .bootstrap import patient_intervals,paired_bootstrap
 from .metrics import select_threshold,score
+from .fair_metrics import paired_evidence
 
 P=Path('/projects/icumultimodal')
 ARMS=('late_average','early','joint')
@@ -56,21 +57,19 @@ def main():
         records.append(record)
         print('E3_EVALUATED',arm,flush=True)
     def compare(first,second,name):
-        paired=align_patients(first,second)
-        result=paired_bootstrap(paired.y_true_first,paired.subject_id,paired.y_prob_first,paired.y_prob_second)
-        row={'comparison':name}
-        for metric in ('auroc','auprc'):
-            for key in ('delta','lower','upper'):
-                row[f'{metric}_{key}']=result[metric][key]
+        row={'comparison':name,**paired_evidence(first,second)}
         contrasts.append(row)
         print('E3_COMPARISON',name,flush=True)
     for first,second in [('early','late_average'),('joint','late_average'),('joint','early')]:
         compare(predictions[first],predictions[second],f'{first}_minus_{second}')
-    table=pd.read_csv(P/'results/summary_table.csv')
-    baselines=table.loc[table.arm.isin(['context_vitals_labs','context_vitals_labs_cxr'])&(table.selection=='main')]
-    for arm in ('early','joint'):
-        for _,row in baselines.iterrows():
-            compare(predictions[arm],pd.read_parquet(P/f'results/oof/{row.experiment}__seed0.parquet'),f'{arm}_minus_{row.experiment}')
+    fair_root=P/'results/e1_ensembles'
+    if not json.loads((fair_root/'complete.json').read_text())['complete']:
+        raise RuntimeError('Three-seed E1 comparators must be complete')
+    for arm in ARMS:
+        for baseline in ('context_vitals_labs','context_vitals_labs_cxr'):
+            for counts in (0,1):
+                name=f'{baseline}__counts{counts}'
+                compare(predictions[arm],pd.read_parquet(fair_root/name/'ensemble.parquet'),f'{arm}_minus_e1_lightgbm_3seed_{name}')
     summary=pd.DataFrame(records)
     summary.to_csv(out/'summary.csv',index=False)
     pd.DataFrame(folds).to_csv(out/'fold_metrics.csv',index=False)

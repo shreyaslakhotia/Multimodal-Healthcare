@@ -74,6 +74,8 @@ def main():
         probabilities=np.array([rows.sort_values('subject_id').y_prob.to_numpy() for rows in seed_oof])
         record=dict(arm='_'.join(arm),include_counts=counts,name=name,seed_max_probability_difference=float(np.max(np.ptp(probabilities,axis=0))),**score(ensemble.y_true,ensemble.y_prob,ensemble.threshold))
         summaries.append(record)
+        if record['auroc']>.98 or ('cxr' not in arm and arm!=('mask',) and record['auroc']>.90):
+            raise RuntimeError('E1 ensemble exceeds a prespecified leakage gate')
         print('E1_ENSEMBLE_COMPLETE',name,flush=True)
     pd.DataFrame(summaries).to_csv(root/'summary.csv',index=False)
     comparisons=[]
