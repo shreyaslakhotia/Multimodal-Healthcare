@@ -234,3 +234,26 @@ Early/joint fusion are checkpointed each epoch. GPU smoke plus E2 consumed about
 64.2 SU from allocated seconds; E3 can use at most 480 additional SU on one L40.
 The PDF report and aggregate E2 tables/figures are committed; no patient artifacts
 were copied locally. An E3 CPU evaluator is prepared to run after training.
+## E3 queue update
+
+The pending L40 training 217740 and evaluator 217849 were cancelled before any
+GPU allocation after its start estimate slipped to 24 October. Live metadata
+showed one free A6000 GPU (9/10 allocated), a supported x86 Ampere alternative.
+An initial replacement could not resolve the old completed CPU prerequisite
+because it had aged out of Slurm's controller. Accounting still confirms its
+49-test success. A fresh identical CPU gate preserves the dependency requirement;
+no resource/QoS policy was changed or bypassed.
+
+Current chain: CPU check 217852 -> A6000 E3 217853 -> CPU evaluation 217854.
+E3 requests one A6000 for two hours, at most 360 SU; scientific settings are
+unchanged. Use these IDs rather than the superseded L40 IDs:
+
+```bash
+squeue --me
+squeue --start -j 217853
+sacct -j 217852,217853,217854 --format=JobID,JobName,State,Elapsed,ExitCode
+tail -f /projects/icumultimodal/reports/icue3-217853.out
+```
+
+CPU evaluation runs only after successful training. Review results/evaluation/e3
+and reports/icue3eval-217854.out; an empty queue alone is not proof of success.

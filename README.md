@@ -8,7 +8,7 @@ is reliable baselines and modality comparisons, with explicit leakage checks.
 all 60 E2 unimodal fits are complete. See the [E2 evaluation](reports/E2_EVALUATION.md)
 and its [PDF](reports/E2_EVALUATION.pdf) for methods, figures and paired comparisons.
 The cohort contains 6,225 patients and 705 deaths. E3 early and joint fusion
-is queued as job 217740 after 49 tests passed; the late-average reference is
+is submitted as A6000 job 217853 after 49 tests passed; the late-average reference is
 included. E4-E6 remain outstanding. Missingness and untimed-CXR limitations
 remain active; see reports/CANARIES.md.
 
