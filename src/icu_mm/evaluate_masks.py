@@ -42,6 +42,24 @@ def main():
     rows.append(dict(modality='all_ehr',variant='E1_mask_only_LightGBM_3seed',**score(baseline.y_true,baseline.y_prob,baseline.threshold)))
     pd.DataFrame(rows).to_csv(out/'summary.csv',index=False)
     pd.DataFrame(comparisons).to_csv(out/'comparisons.csv',index=False)
+    report=['# Temporal mask control results',
+      'Fixed 5 outer folds and 3 seeds averaged per patient; 6,225 patients and 705 deaths. AUPRC is average precision. Intervals are conditional 1,000-draw patient bootstrap intervals.',
+      '| Modality | Input variant | AUROC | Average precision | Precision | Recall |',
+      '|---|---|---:|---:|---:|---:|']
+    for row in rows:
+        report.append(f"| {row['modality']} | {row['variant']} | {row['auroc']:.4f} | {row['auprc']:.4f} | {row['precision']:.4f} | {row['recall']:.4f} |")
+    report += ['',
+      'E1 mask-only uses both vitals and labs; it is a care-process reference, not a matched single-stream model. Its historical AUROC is 0.6867. Values-only removes explicit channels, while retaining the structural pooling mask.',
+      'Entirely unobserved hours are masked in pooling, but imputed tokens remain visible to self-attention in all E2 arms. No architecture search was performed.',
+      '## Paired differences',
+      '| Modality and comparison | Delta AUROC with conditional CI | Fold deltas 0 through 4 | Positive negative zero folds | Interpretation |',
+      '|---|---|---|---|---|']
+    for row in comparisons:
+        delta=' / '.join(f"{row[f'auroc_fold{fold}_delta']:+.4f}" for fold in range(5))
+        signs='/'.join(str(row[f'auroc_{name}_folds']) for name in ('positive','negative','zero'))
+        report.append(f"| {row['modality']} {row['comparison']} | {row['auroc_delta']:+.4f} [{row['auroc_lower']:+.4f}, {row['auroc_upper']:+.4f}] | {delta} | {signs} | {row['auroc_status']} |")
+    report += ['', 'An unresolved difference is not evidence of equality. Pair-specific AUROC/AP resolution, all fold signs and intervals are in results/evaluation/mask_controls/comparisons.csv. Fold signs are descriptive because training sets overlap.']
+    (P/'reports/MASK_CONTROLS.md').write_text('\n\n'.join(report).replace('|\n\n|','|\n|')+'\n')
     (out/'metadata.json').write_text(json.dumps({'historical_e1_mask_auroc':.686745,'warning':'E1 mask control uses both temporal modalities; not an identical input set to a single E2 stream',
        'pooling':'Entirely unobserved hours excluded from pooling in every E2 control. This preserves structural missingness in values-only.',
        'attention':'Imputed tokens remain visible to self-attention.'},indent=2))

@@ -41,3 +41,8 @@ Use CPU jobs for setup, data work, canaries, tabular models and report auditing.
 Track stage-specific SU from job accounting against a baseline taken at setup; monthly account usage can include unrelated jobs and resets. Stop at 21,000 stage SU (70% of the 30,000 cap). Do not assume the full experiment ladder fits before measuring early runtime.
 
 No LLM inference, agents, or external AI APIs are part of the benchmark. Development assistance does not receive patient data.
+
+
+## Accepted follow up amendment
+
+See [requested controls](REQUESTED_CONTROLS.md) and [E4 design](E4_DESIGN.md).

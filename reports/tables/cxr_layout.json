@@ -1,0 +1,133 @@
+{
+  "populations": {
+    "all_metadata": {
+      "patients": 65086,
+      "counts": {
+        "image_paths": 371951,
+        "paths_with_study_id": 371951,
+        "filenames_matching_dicom_id_shape": 371951,
+        "patients_with_ap": 33232,
+        "patients_with_pa": 45426,
+        "patients_with_multiple_images": 59548,
+        "patients_with_multiple_studies": 32406,
+        "selected_ap": 33232,
+        "patients_with_additional_frontal_image": 34446,
+        "patients_with_same_view_listed_alternative": 29443,
+        "ap_selected_patients_with_ap_listed_alternative": 19297,
+        "selected_pa": 30424
+      },
+      "listed_images_per_patient": {
+        "min": 1.0,
+        "q25": 2.0,
+        "median": 3.0,
+        "q75": 6.0,
+        "max": 174.0,
+        "mean": 5.714762007190487,
+        "total": 371951
+      },
+      "unique_listed_images_per_patient": {
+        "min": 1.0,
+        "q25": 2.0,
+        "median": 3.0,
+        "q75": 6.0,
+        "max": 174.0,
+        "mean": 5.714762007190487,
+        "total": 371951
+      },
+      "studies_per_patient": {
+        "min": 1.0,
+        "q25": 1.0,
+        "median": 1.0,
+        "q75": 3.0,
+        "max": 158.0,
+        "mean": 3.450296530743939,
+        "total": 224566
+      },
+      "ap_images_per_patient": {
+        "min": 0.0,
+        "q25": 0.0,
+        "median": 1.0,
+        "q75": 2.0,
+        "max": 167.0,
+        "mean": 2.224257136711428,
+        "total": 144768
+      },
+      "pa_images_per_patient": {
+        "min": 0.0,
+        "q25": 0.0,
+        "median": 1.0,
+        "q75": 2.0,
+        "max": 69.0,
+        "mean": 1.462111667639738,
+        "total": 95163
+      }
+    },
+    "main_cohort": {
+      "patients": 6225,
+      "counts": {
+        "image_paths": 72994,
+        "paths_with_study_id": 72994,
+        "filenames_matching_dicom_id_shape": 72994,
+        "patients_with_ap": 5693,
+        "patients_with_pa": 3142,
+        "patients_with_multiple_images": 5837,
+        "patients_with_multiple_studies": 5395,
+        "selected_ap": 5693,
+        "patients_with_additional_frontal_image": 5420,
+        "patients_with_same_view_listed_alternative": 5085,
+        "ap_selected_patients_with_ap_listed_alternative": 4835,
+        "patients_with_same_view_available_alternative": 5085,
+        "ap_selected_patients_with_ap_available_alternative": 4835,
+        "selected_pa": 532
+      },
+      "listed_images_per_patient": {
+        "min": 1.0,
+        "q25": 4.0,
+        "median": 8.0,
+        "q75": 15.0,
+        "max": 167.0,
+        "mean": 11.7259437751004,
+        "total": 72994
+      },
+      "unique_listed_images_per_patient": {
+        "min": 1.0,
+        "q25": 4.0,
+        "median": 8.0,
+        "q75": 15.0,
+        "max": 167.0,
+        "mean": 11.7259437751004,
+        "total": 72994
+      },
+      "studies_per_patient": {
+        "min": 1.0,
+        "q25": 3.0,
+        "median": 5.0,
+        "q75": 11.0,
+        "max": 124.0,
+        "mean": 8.496385542168674,
+        "total": 52890
+      },
+      "ap_images_per_patient": {
+        "min": 0.0,
+        "q25": 2.0,
+        "median": 4.0,
+        "q75": 10.0,
+        "max": 133.0,
+        "mean": 7.777028112449799,
+        "total": 48412
+      },
+      "pa_images_per_patient": {
+        "min": 0.0,
+        "q25": 0.0,
+        "median": 1.0,
+        "q75": 2.0,
+        "max": 29.0,
+        "mean": 1.514859437751004,
+        "total": 9430
+      }
+    }
+  },
+  "timing": "No timestamps; no PhysioNet metadata requested or obtained",
+  "dicom_id": "Filename structural match only; not independently joined to canonical metadata",
+  "availability": "ZIP central directory, not repeated image decoding"
+}

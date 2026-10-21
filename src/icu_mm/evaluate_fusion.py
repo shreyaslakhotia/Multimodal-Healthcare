@@ -74,6 +74,24 @@ def main():
     summary.to_csv(out/'summary.csv',index=False)
     pd.DataFrame(folds).to_csv(out/'fold_metrics.csv',index=False)
     pd.DataFrame(contrasts).to_csv(out/'comparisons.csv',index=False)
+    report=['# E3 fixed fusion results',
+      'Five patient-separated outer folds; three seeds averaged per patient; 6,225 patients and 705 deaths. All E3 arms include untimed CXR. No logistic stacking. AUPRC is average precision.',
+      '| Arm | AUROC with conditional 95% CI | Average precision | Precision | Recall |',
+      '|---|---|---:|---:|---:|']
+    for row in records:
+        if row['estimator']!='mean_probability_ensemble': continue
+        report.append(f"| {row['arm']} | {row['auroc']:.4f} [{row['auroc_lower']:.4f}, {row['auroc_upper']:.4f}] | {row['auprc']:.4f} | {row['precision']:.4f} | {row['recall']:.4f} |")
+    report += ['', '## Paired comparisons',
+       '| Comparison | Delta AUROC and conditional CI | Outer fold deltas 0 through 4 | Positive negative zero | Approximate resolution | Interpretation |',
+       '|---|---|---|---|---|---|']
+    for row in contrasts:
+        delta=' / '.join(f"{row[f'auroc_fold{fold}_delta']:+.4f}" for fold in range(5))
+        signs='/'.join(str(row[f'auroc_{name}_folds']) for name in ('positive','negative','zero'))
+        report.append(f"| {row['comparison']} | {row['auroc_delta']:+.4f} [{row['auroc_lower']:+.4f}, {row['auroc_upper']:+.4f}] | {delta} | {signs} | {row['auroc_resolution_95_approx']:.4f} | {row['auroc_status']} |")
+    report += ['', 'Intervals use 1,000 paired patient bootstrap draws conditional on fitted models. Fold signs are descriptive, not independent replications. A difference below pair-specific resolution or with a CI including zero is unresolved, never equal. No equivalence test was conducted. All paired AP results and per-seed/fold scores remain in the aggregate CSVs.',
+      'The original deterministic E1 LightGBM produced identical predictions across its three seeds; its ensemble has no observed additional seed diversity. Null results are retained. No test score is used to redesign E4.',
+      'Next primary RQ2 comparison is EHR-only E4a versus EHR-only jointly trained concatenation with matching E2 initializers. Full CXR E4 arms and E4b/E5 remain secondary/sensitivity analyses as declared in docs/E4_DESIGN.md.']
+    (P/'reports/E3_RESULTS.md').write_text('\n\n'.join(report).replace('|\n\n|','|\n|')+'\n')
     fig,axes=plt.subplots(1,2,figsize=(11,4.5))
     for arm in ARMS:
         data=predictions[arm]

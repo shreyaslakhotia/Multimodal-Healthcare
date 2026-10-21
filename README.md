@@ -8,7 +8,7 @@ is reliable baselines and modality comparisons, with explicit leakage checks.
 all 60 E2 unimodal fits are complete. See the [E2 evaluation](reports/E2_EVALUATION.md)
 and its [PDF](reports/E2_EVALUATION.pdf) for methods, figures and paired comparisons.
 The cohort contains 6,225 patients and 705 deaths. E3 early and joint fusion
-is submitted as A6000 job 217853 after 49 tests passed; the late-average reference is
+is submitted as free-QOS A6000 job 217883; the late-average reference is
 included. E4-E6 remain outstanding. Missingness and untimed-CXR limitations
 remain active; see reports/CANARIES.md.
 
@@ -53,3 +53,6 @@ Git or online AI-service tool output. Export aggregate diagnostics only. The
 user confirmed access authorization; the Kaggle uploader's license label
 conflicts with the archive's included PhysioNet license, as documented in
 `reports/DATA_REPORT.md`.
+
+
+[E2 fairness addendum](reports/E2_FAIRNESS_ADDENDUM.md), [CXR layout](reports/CXR_LAYOUT.md), and [EHR-first E4 design](docs/E4_DESIGN.md) document the accepted follow-up controls. Latest suite: 54 tests passed. Mask ablation job 217932 and joint evaluator 217933 are submitted.

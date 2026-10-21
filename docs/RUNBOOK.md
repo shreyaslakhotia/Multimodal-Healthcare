@@ -257,3 +257,7 @@ tail -f /projects/icumultimodal/reports/icue3-217853.out
 
 CPU evaluation runs only after successful training. Review results/evaluation/e3
 and reports/icue3eval-217854.out; an empty queue alone is not proof of success.
+
+## Current requested controls
+
+Use E3 217883, mask ablation 217932 and evaluator 217933. Older E3 IDs are superseded/cancelled. Both GPU jobs use the free resumable QOS. See docs/REQUESTED_CONTROLS.md for the full dependency chain, accounting and completed CPU analyses.
