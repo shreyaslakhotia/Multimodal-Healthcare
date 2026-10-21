@@ -4,11 +4,13 @@ Research code for a patient-separated MIMIC-IV/MIMIC-CXR benchmark of in-hospita
 mortality among adults alive and still in ICU at the 48-hour landmark. The goal
 is reliable baselines and modality comparisons, with explicit leakage checks.
 
-**Status (20 October 2026):** acquisition, cohort/QC, E0/E1 tabular models,
-frozen CXR features, paired bootstrap comparisons and figures are complete.
-The cohort contains 6,225 patients and 705 deaths. See reports/CHECKPOINT_1.md
-and reports/CANARIES.md for results and limitations. E2 is prepared and queued
-behind the GPU smoke test; deep/fusion experiments remain outstanding.
+**Status (21 October 2026):** acquisition, cohort/QC, E0/E1, report audit and
+all 60 E2 unimodal fits are complete. See the [E2 evaluation](reports/E2_EVALUATION.md)
+and its [PDF](reports/E2_EVALUATION.pdf) for methods, figures and paired comparisons.
+The cohort contains 6,225 patients and 705 deaths. E3 early and joint fusion
+is queued as job 217740 after 49 tests passed; the late-average reference is
+included. E4-E6 remain outstanding. Missingness and untimed-CXR limitations
+remain active; see reports/CANARIES.md.
 
 **CXR limitation:** the metadata has no timestamps. The image arm is exploratory
 and cannot establish a temporally leakage-controlled CXR benefit. Source paths

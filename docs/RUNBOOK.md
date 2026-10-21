@@ -210,3 +210,27 @@ See the checkpoint, canary, source-data and report-audit reports for evidence.
 Official references: [cluster rules](https://github.com/NTUEEECluster/docs/blob/main/skill.md),
 [Slurm](https://github.com/NTUEEECluster/docs/blob/main/slurm-guide.md) and
 [storage](https://github.com/NTUEEECluster/docs/blob/main/storage-guide.md).
+## Update on 21 October 2026
+
+GPU smoke 215030 passed on L40S in 19 seconds. E2 215538 completed all 60 fits in
+15:44. E2 evaluation 217724 completed in 1:22; its preflight passed 46 tests.
+Read reports/E2_EVALUATION.pdf or the Markdown report before interpreting E2.
+E3 implementation validation 217739 passed 49 tests and dependency checks.
+
+E3 training job 217740 is queued; do not submit a duplicate. It covers frozen
+encoder early fusion, joint fine-tuning and a probability-average reference.
+Settings and reporting are in docs/E3_EXPERIMENT.md. The original 20 October
+queue examples above are historical. Current monitoring commands are:
+
+```bash
+squeue --me
+squeue --start -j 217740
+sacct -j 217740 --format=JobID,JobName,State,Elapsed,ExitCode
+tail -f /projects/icumultimodal/reports/icue3-217740.out
+```
+
+The two-hour allocation is a runtime limit; actual duration is not measured yet.
+Early/joint fusion are checkpointed each epoch. GPU smoke plus E2 consumed about
+64.2 SU from allocated seconds; E3 can use at most 480 additional SU on one L40.
+The PDF report and aggregate E2 tables/figures are committed; no patient artifacts
+were copied locally. An E3 CPU evaluator is prepared to run after training.

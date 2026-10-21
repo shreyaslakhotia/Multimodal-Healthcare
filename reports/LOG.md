@@ -90,3 +90,33 @@
   organized under reports/. Patient data, predictions and checkpoints remain
   private cluster artifacts outside Git. No speculative exploratory scripts
   were retained; reproducible acquisition and inspection stages are retained.
+## 21 October 2026 E2 evaluation and E3 submission
+
+- GPU smoke 215030 completed 00:00:19 on L40S, GPU_SMOKE_PASSED; bf16 available.
+  E2 training 215538 completed 00:15:44, 60 cases and 12 OOF artifacts confirmed.
+  Completion signature e1ed74ed723d556a3dc05899eba2b92423e2fa3162377bc3dd25e1bf9fcc0c23;
+  source 0f6bd8d. Actual smoke plus E2 GPU usage is approximately 64.2 SU.
+- User requested an E2 evaluation document before the next experiment. CPU
+  evaluation 217724 (27f9b56) passed 46 tests and finished in 1:22. No seed
+  selection: average three seed probabilities per patient and select thresholds
+  using matching averaged validation predictions. Patient intervals and paired
+  differences use 1,000 resamples conditional on fitted models.
+- Ensemble AUROC: context .6837, vitals .7732, labs .7447, CXR .6145. Against
+  count-aware E1 baselines, temporal encoder AUROC differences are unresolved;
+  CXR is unresolved against logistic regression. No architecture sweep justified.
+  Temporal attention sees imputed hours while pooling excludes entirely unobserved
+  hours. Document this implementation detail and preserve missingness warning.
+- Eight-page E2 PDF and editable Markdown, four figures and aggregate tables
+  committed. The standard DOCX renderer lacked LibreOffice; native Word COM was
+  unavailable. Deliver a directly generated and visually checked PDF, preserving
+  the unrendered DOCX only as an internal content intermediate. No patient data
+  used for local authoring. Inspect all eight rendered pages before delivery.
+- E3 early/joint implementation: same E2 fold/seed initializers, deterministic
+  frozen embedding cache, frozen encoder eval mode for early fusion, same MLP
+  and fixed optimizer settings, checkpoints and signature locks. Late average
+  included, stacking and optional LSTM deferred per priority. CPU job 217739
+  passed 49 tests and pip check in 11 seconds.
+- Submitted one-L40 E3 job 217740, afterok 217739, two-hour maximum (480 SU).
+  SSH stalled after submission; read-only squeue/sacct and registry check confirmed
+  acceptance and no duplicate was submitted. It is pending Priority. E3 CPU
+  aggregation/paired evaluation prepared; no E3 scores exist yet.
